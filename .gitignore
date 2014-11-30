@@ -41,3 +41,9 @@ Icon
 Network Trash Folder
 Temporary Items
 .apdisk
+
+mule-exception-metrics-with-codahale/.studio/
+mule-exception-metrics-with-codahale/.settings/
+mule-exception-metrics-with-codahale/.project
+mule-exception-metrics-with-codahale/.classpath
+mule-exception-metrics-with-codahale/target/
