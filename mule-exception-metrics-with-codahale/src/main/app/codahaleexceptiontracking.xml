@@ -1,24 +1,37 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:scripting="http://www.mulesoft.org/schema/mule/scripting" xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+<mule xmlns:https="http://www.mulesoft.org/schema/mule/https" xmlns:scripting="http://www.mulesoft.org/schema/mule/scripting" xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
 	xmlns:spring="http://www.springframework.org/schema/beans" version="EE-3.5.2"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
 http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
 http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd
-http://www.mulesoft.org/schema/mule/scripting http://www.mulesoft.org/schema/mule/scripting/current/mule-scripting.xsd">
+http://www.mulesoft.org/schema/mule/scripting http://www.mulesoft.org/schema/mule/scripting/current/mule-scripting.xsd
+http://www.mulesoft.org/schema/mule/https http://www.mulesoft.org/schema/mule/https/current/mule-https.xsd">
 
-  	<custom-agent name="metricAgent" class="com.freemansoft.metrics.MetricAgent" >
+  	<custom-agent name="metricAgent" class="com.freemansoft.metrics.flowexception.MetricAgent" >
         <spring:property name="metricRegistry" ref="codahaleMetricRegistry"/>
+        <spring:property name="appName" value="${app.name}"/>
     </custom-agent>
 
     <spring:beans>
-        <spring:bean name="codahaleMetricRegistry" class="com.codahale.metrics.MetricRegistry" scope="singleton" />
-        <spring:bean name="codahaleMetricRecordFlowException" class="com.freemansoft.metrics.MetricRecordFlowException" scope="singleton" >
-            <spring:property name="metricRegistry" ref="codahaleMetricRegistry"/>
+        <spring:bean name="codahaleMetricRegistry" class="com.codahale.metrics.MetricRegistry" scope="singleton"/> 
+        <spring:bean name="codahaleMetricRecordFlowException" class="com.freemansoft.metrics.flowexception.MetricRecordFlowException" scope="singleton" >
+            <spring:constructor-arg name="metricRegistry" ref="codahaleMetricRegistry"/>
+        </spring:bean>
+        
+        <spring:bean name="codahaleMetricSystemExceptionShim" class="com.freemansoft.metrics.systemexception.SystemExceptionMetricContextShim" scope="singleton" >
+            <spring:constructor-arg name="metricAwareExceptionListener" ref="codahaleMetricRecordSystemException"/>
+        </spring:bean>
+        <spring:bean name="codahaleMetricRecordSystemException" class="com.freemansoft.metrics.systemexception.SystemExceptionMetricListener" scope="singleton" >
+            <spring:constructor-arg name="metricRegistry" ref="codahaleMetricRegistry"/>
         </spring:bean>
     </spring:beans>
+    
+    <https:connector name="HTTP_HTTPS" cookieSpec="netscape" validateConnections="true" sendBufferSize="0" receiveBufferSize="0" receiveBacklog="0" clientSoTimeout="10000" serverSoTimeout="10000" socketSoLinger="0" doc:name="HTTP-HTTPS">
+        <https:tls-key-store path="foo" keyPassword="password" storePassword="password"/>
+    </https:connector>
     
     <flow name="codahaleexceptiontrackingFlow1" doc:name="codahaleexceptiontrackingFlow1">
         <http:inbound-endpoint exchange-pattern="request-response" host="localhost" port="8081"  contentType="text/html" doc:name="HTTP"/>
@@ -55,5 +68,9 @@ throw new TypeError("this javascript error message created in javascript ")]]></
             <logger  level="INFO" doc:name="Logger"/>
             <component class="com.freemansoft.dummyclasses.ExceptionToHtmlTransformer" doc:name="Convert Exception Info to HTML"/>
         </catch-exception-strategy>
+    </flow>
+    <flow name="generate_connector_system_exception" doc:name="generate_connector_system_exception" doc:description="This generates a system exception on startup because the HTTPS endpoint is using a HTTP connector that is mis configured for its key store">
+        <https:inbound-endpoint exchange-pattern="request-response" host="localhost" port="8081" connector-ref="HTTP_HTTPS" doc:name="HTTPS"/>
+        <logger level="INFO" doc:name="Logger"/>
     </flow>
 </mule>

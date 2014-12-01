@@ -12,10 +12,8 @@ public class ThrowExceptionEveryTime implements Callable {
 
     @Override
     public Object onCall(MuleEventContext eventContext) throws Exception {
-        throw new IllegalStateException(
-                "This Java test throws this Java exception every time",
-                new IllegalAccessException(
-                        "This test creates this inner exception"));
+        throw new IllegalStateException("This Java test throws this Java exception every time", new IllegalAccessException(
+                "This test creates this inner exception"));
     }
 
 }

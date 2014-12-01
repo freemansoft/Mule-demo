@@ -5,7 +5,7 @@ import org.mule.api.MuleEventContext;
 import org.mule.api.MuleMessage;
 import org.mule.api.lifecycle.Callable;
 
-import com.freemansoft.metrics.MetricRecordFlowException;
+import com.freemansoft.metrics.MetricUtilities;
 
 /**
  * Code was all in a payload setter before as a groovy script that got
@@ -25,18 +25,15 @@ public class ExceptionToHtmlTransformer implements Callable {
         ExceptionPayload ePayload = message.getExceptionPayload();
 
         StringBuffer outBuffer = new StringBuffer();
-        outBuffer.append("<html><head><title>demo exceptions</title></head>"
-                + "<body>");
+        outBuffer.append("<html><head><title>demo exceptions</title></head>" + "<body>");
         if (ePayload != null) {
             // ExceptionPayload.message is really the message of the top level
             // exception
             // outBuffer.append(ePayload.getMessage());
             if (ePayload.getException() != null) {
                 outBuffer.append("<table border=1 cellspacing=0>");
-                outBuffer
-                        .append("<tr><td>class name</td><td>message</td></tr>");
-                MetricRecordFlowException.buildHTMLString(outBuffer,
-                        ePayload.getException());
+                outBuffer.append("<tr><td>class name</td><td>message</td></tr>");
+                MetricUtilities.buildHTMLString(outBuffer, ePayload.getException());
                 outBuffer.append("</table>");
             }
         }
