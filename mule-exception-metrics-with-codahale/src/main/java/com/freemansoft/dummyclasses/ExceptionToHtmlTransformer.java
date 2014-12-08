@@ -25,16 +25,18 @@ public class ExceptionToHtmlTransformer implements Callable {
         ExceptionPayload ePayload = message.getExceptionPayload();
 
         StringBuffer outBuffer = new StringBuffer();
-        outBuffer.append("<html><head><title>demo exceptions</title></head>" + "<body>");
+        outBuffer.append("<html><head><title>Example Exception Stack Trace</title></head>");
+        outBuffer.append("<body>\n");
+        outBuffer.append("<h2>Nested exceptions starting from the outside, drilling in</h2>\n");
         if (ePayload != null) {
             // ExceptionPayload.message is really the message of the top level
             // exception
             // outBuffer.append(ePayload.getMessage());
             if (ePayload.getException() != null) {
-                outBuffer.append("<table border=1 cellspacing=0>");
-                outBuffer.append("<tr><td>class name</td><td>message</td></tr>");
+                outBuffer.append("<table border=1 cellspacing=0>\n");
+                outBuffer.append("<tr><th>class name</th><th>message</th></tr>\n");
                 MetricUtilities.buildHTMLString(outBuffer, ePayload.getException());
-                outBuffer.append("</table>");
+                outBuffer.append("</table>\n");
             }
         }
         outBuffer.append("</body></html>");

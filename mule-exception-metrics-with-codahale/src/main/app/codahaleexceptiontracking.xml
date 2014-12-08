@@ -62,7 +62,11 @@ throw new TypeError("this javascript error message created in javascript ")]]></
             <otherwise>
                 <parse-template location="${app.home}/docroot/index.html" doc:name="Load index.html"/>
                 <scripting:transformer mimeType="text/html" doc:name="Evaluate MEL in Payload">
-                    <scripting:script engine="Groovy"><![CDATA[return muleContext.getExpressionManager().parse(payload,message)]]></scripting:script>
+                    <scripting:script engine="Groovy"><![CDATA[/*
+ * See https://svn.codehaus.org/mule/tags/mule-3.3.2/core/src/test/java/org/mule/expression/ExpressionManagerTestCase.java for an parse() examples
+ * Use parse() instead of evaluate() because parse() executes all MEL expression and evaluate does only one
+ */
+return muleContext.getExpressionManager().parse(payload,message)]]></scripting:script>
                 </scripting:transformer>
             </otherwise>
         </choice>
