@@ -35,42 +35,47 @@ http://www.mulesoft.org/schema/mule/https http://www.mulesoft.org/schema/mule/ht
     
     <flow name="codahaleexceptiontrackingFlow1" doc:name="codahaleexceptiontrackingFlow1">
         <http:inbound-endpoint exchange-pattern="request-response" host="localhost" port="8081"  contentType="text/html" doc:name="HTTP"/>
-        <choice doc:name="Choice">
+        <choice doc:name="Choice based on htttp.relative.path">
             <when expression="#[message.inboundProperties['http.relative.path'] == '1']">
-                <scripting:component doc:name="JavaScript">
+                <scripting:component doc:name="Throw JavaScript Exception">
                     <scripting:script engine="JavaScript"><![CDATA[//throwing java exceptions creates unsatisfactory results
 //throw new UnsupportedOperationException('this message created in javascript');
 throw new TypeError("this javascript error message created in javascript ")]]></scripting:script>
                 </scripting:component>
             </when>
             <when expression="#[message.inboundProperties['http.relative.path'] == '2']">
-                <scripting:component doc:name="Ruby">
+                <scripting:component doc:name="Throw Ruby Exception">
                     <scripting:script engine="jruby"><![CDATA[raise ModelException('this message created in a Ruby script').new]]></scripting:script>
                 </scripting:component>
             </when>
             <when expression="#[message.inboundProperties['http.relative.path'] == '3']">
-                <component doc:name="Java" class="com.freemansoft.dummyclasses.ThrowExceptionEveryTime"/>
+                <component doc:name="Throw Java Exception" class="com.freemansoft.dummyclasses.ThrowExceptionEveryTime"/>
             </when>
             <when expression="#[message.inboundProperties['http.relative.path'] == '4']">
-                <scripting:component doc:name="Groovy">
+                <scripting:component doc:name="Throw Groovy Exception">
                     <scripting:script engine="Groovy"><![CDATA[throw new java.lang.IllegalArgumentException('Invalid relative path. GET the root url to see valid values. Thrown by Groovy',new Exception('nested exception to show deeper stack trace'));]]></scripting:script>
                 </scripting:component>
             </when>
+            <when expression="#[message.inboundProperties['http.relative.path'] == 'favicon.ico']">
+                <logger message="Ignoring favicon.ico" level="DEBUG" doc:name="Ignore FavIcon"/>
+            </when>
             <otherwise>
-                <set-payload value="&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;Request #[message.inboundProperties['http.context.uri']]#[message.inboundProperties['http.context.path']]# &lt;br&gt;where the number is an exception number.&lt;ul&gt;&lt;li&gt;#[message.inboundProperties['http.context.uri']]#[message.inboundProperties['http.context.path']]1:  Javascript throwing native Javascript TypeError&lt;/li&gt;&lt;li&gt;#[message.inboundProperties['http.context.uri']]#[message.inboundProperties['http.context.path']]2: Ruby throwing native Ruby RaiseException&lt;/li&gt;&lt;li&gt;#[message.inboundProperties['http.context.uri']]#[message.inboundProperties['http.context.path']]3: Java throwing IllegalStateException wrapping IllegalAccessException&lt;/li&gt;&lt;li&gt; #[message.inboundProperties['http.context.uri']]#[message.inboundProperties['http.context.path']]4: Groovy throwing an IllegalArgumentException&lt;/li&gt;&lt;/ul&gt;&lt;br&gt;&lt;br&gt;http.context.path:#[message.inboundProperties['http.context.path']]&lt;br&gt;http.context.uri:#[message.inboundProperties['http.context.uri']]&lt;br&gt;http.relative.path:#[message.inboundProperties['http.relative.path']]&lt;br&gt;http.request.path:#[message.inboundProperties['http.request.path']]&lt;br&gt;http.query.params:#[message.inboundProperties['http.query.params']]&lt;br&gt;&lt;/body&gt;&lt;/html&gt;" doc:name="help page at doc root"/>
-
+                <parse-template location="${app.home}/docroot/index.html" doc:name="Load index.html"/>
+                <scripting:transformer mimeType="text/html" doc:name="Evaluate MEL in Payload">
+                    <scripting:script engine="Groovy"><![CDATA[return muleContext.getExpressionManager().parse(payload,message)]]></scripting:script>
+                </scripting:transformer>
             </otherwise>
         </choice>
         <catch-exception-strategy doc:name="Catch Exception Strategy">
         	<component doc:name="Record Exception in Coda Hale metrics">
         		<spring-object bean="codahaleMetricRecordFlowException" />
         	</component>
-            <logger  level="INFO" doc:name="Logger"/>
+            <logger  level="INFO" doc:name="Log Exception"/>
             <component class="com.freemansoft.dummyclasses.ExceptionToHtmlTransformer" doc:name="Convert Exception Info to HTML"/>
         </catch-exception-strategy>
     </flow>
     <flow name="generate_connector_system_exception" doc:name="generate_connector_system_exception" doc:description="This generates a system exception on startup because the HTTPS endpoint is using a HTTP connector that is mis configured for its key store">
-        <https:inbound-endpoint exchange-pattern="request-response" host="localhost" port="8081" connector-ref="HTTP_HTTPS" doc:name="HTTPS"/>
-        <logger level="INFO" doc:name="Logger"/>
+        <https:inbound-endpoint exchange-pattern="request-response" host="localhost" port="8081" connector-ref="HTTP_HTTPS" doc:name="HTTPS using invalid HTTPS Connector"/>
+        <logger level="INFO" doc:name="Logger placeholder to create valid flow definition"/>
     </flow>
 </mule>

@@ -1,0 +1,22 @@
+<html><head></head>
+<body>
+Click on the links below to create various exceptions.
+Use a JMX viewer to see the exception statistics caputred in CodaHale 
+<ul>
+	<li><a href="/1">1: Javascript throwing native Javascript TypeError</a></li>
+	<li><a href="/2">2: Ruby throwing native Ruby RaiseException</a></li>
+	<li><a href="/3">3: Java throwing IllegalStateException wrapping IllegalAccessException</a></li>
+	<li><a href="/4">4: Groovy throwing an IllegalArgumentException</a></li>
+</ul>
+<p>
+<a href=http://www.mulesoft.org/documentation/display/current/Mule+Expression+Language+Reference>
+Documentation on standard variables available in the mule context
+</a>
+<ul>
+	<li>http.context.path: #[message.inboundProperties['http.context.path']]</li>
+	<li>http.context.uri: #[message.inboundProperties['http.context.uri']]</li>
+	<li>http.relative.path: #[message.inboundProperties['http.relative.path']]</li>
+	<li>http.request.path: #[message.inboundProperties['http.request.path']]</li>
+	<li>http.query.params: #[message.inboundProperties['http.query.params']]</li>
+</ul>
+</body></html>
